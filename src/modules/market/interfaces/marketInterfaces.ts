@@ -15,3 +15,10 @@ export interface MarketInfo {
   votesUp: number;
   votesDown: number;
 }
+
+export interface MarketCreationData {
+  description: string;
+  cutoffDate: number;
+  decisionDate: number;
+  decisionProvider: string;
+}

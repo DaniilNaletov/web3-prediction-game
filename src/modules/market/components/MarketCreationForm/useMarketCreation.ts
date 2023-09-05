@@ -1,46 +1,49 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect } from "react";
+import PredictionMarketFactoryAbi from "../../model/PredictionMarketFactoryAbi.json";
 import {
-  useAccount,
-  useContractWrite,
-  usePrepareContractWrite,
-  usePublicClient,
-  useWalletClient,
-} from "wagmi";
-import PredictionMarketFactoryAbi from "../../model/PredictionMarketFactoryAbi";
-import { prepareWriteContract, writeContract } from "wagmi/actions";
+  prepareWriteContract,
+  readContract,
+  waitForTransaction,
+  watchContractEvent,
+  writeContract,
+} from "wagmi/actions";
+import { MarketCreationData } from "../../interfaces/marketInterfaces";
+import { MARKET_FACTORY_ADDRESS } from "../../model/marketConstants";
+
+interface CreateMarketResult {
+  type: "existed" | "success" | "error";
+  market?: string;
+}
 
 const useMarketCreation = () => {
-  const [isCreating, setIsCreating] = useState(false);
-  const [existedMarket, setExistedMarket] = useState("");
+  useEffect(() => {
+    const unwatch = watchContractEvent(
+      {
+        address: MARKET_FACTORY_ADDRESS,
+        abi: PredictionMarketFactoryAbi,
+        eventName: "marketCreated",
+      },
+      (log) => console.log("Watch marketCreated ContractEvent: ", log)
+    );
+    const unwatch2 = watchContractEvent(
+      {
+        address: MARKET_FACTORY_ADDRESS,
+        abi: PredictionMarketFactoryAbi,
+        eventName: "marketCreatedEvent",
+      },
+      (log) => console.log("Watch marketCreatedEvent ContractEvent: ", log)
+    );
 
-  const publicClient = usePublicClient();
-
-  const account = useAccount();
-  const { data: walletClient } = useWalletClient();
-
-  console.log("ASD:", account, publicClient, walletClient);
-
-  const { config } = usePrepareContractWrite({
-    address: "0x595A74DDE1b1d08a48943A81602bc334474ce487",
-    abi: PredictionMarketFactoryAbi,
-
-    functionName: "createMarket",
-    args: [
-      999999999999,
-      9999999999999,
-      "0x40881C3b2033de18C47003A294E4c6C6A76e6793",
-      "Temp",
-    ],
-  });
-
-  const { data, isError, isLoading } = useContractWrite(config);
-
-  console.log("Write:", data, isLoading, isError);
+    return () => {
+      unwatch();
+      unwatch2();
+    };
+  }, []);
 
   const findMarket = useCallback(
     async (description: string, cutoffDate: number) => {
-      const result = (await publicClient.readContract({
-        address: "0x595A74DDE1b1d08a48943A81602bc334474ce487",
+      const result = (await readContract({
+        address: MARKET_FACTORY_ADDRESS,
         abi: PredictionMarketFactoryAbi,
         functionName: "getMarket",
         args: [description, cutoffDate],
@@ -51,51 +54,60 @@ const useMarketCreation = () => {
       }
       return null;
     },
-    [publicClient]
+    []
   );
 
   const createMarket = useCallback(
-    async (data: {
-      description: string;
-      cutoffDate: number;
-      decisionDate: number;
-      decisionProvider: string;
-    }) => {
+    async (data: MarketCreationData): Promise<CreateMarketResult> => {
       const { description, cutoffDate, decisionDate, decisionProvider } = data;
       console.log(
-        "Create:",
+        "createMarket:",
         description,
         cutoffDate,
         decisionDate,
         decisionProvider
       );
 
-      setIsCreating(true);
+      try {
+        const existedMarket = await findMarket(description, cutoffDate);
+        if (existedMarket) {
+          return { type: "existed", market: existedMarket };
+        }
 
-      const existedMarket = await findMarket(description, cutoffDate);
-      if (existedMarket) {
-        setIsCreating(false);
-        setExistedMarket(existedMarket);
+        const { request } = await prepareWriteContract({
+          address: MARKET_FACTORY_ADDRESS,
+          abi: PredictionMarketFactoryAbi,
+
+          functionName: "createMarket",
+          args: [cutoffDate, decisionDate, decisionProvider, description],
+        });
+
+        const { hash } = await writeContract(request);
+
+        console.log("Contract Write hash:", hash);
+
+        const data = await waitForTransaction({
+          hash,
+        });
+
+        console.log("Contract Write transaction:", data);
+
+        if (data.status === "success") {
+          return { type: "success" };
+        }
+
+        return { type: "error" };
+      } catch (e) {
+        console.log("Something went wrong on contact creation");
+        console.error(e);
+
+        return { type: "error" };
       }
-
-      const { request } = await prepareWriteContract({
-        address: "0x595A74DDE1b1d08a48943A81602bc334474ce487",
-        abi: PredictionMarketFactoryAbi,
-
-        functionName: "createMarket",
-        args: [cutoffDate, decisionDate, decisionProvider, description],
-      });
-
-      const { hash } = await writeContract(request);
-
-      //   writeContract()
-
-      console.log("CreateContract request sent:", hash);
     },
     [findMarket]
   );
 
-  return { isCreating, existedMarket, createMarket };
+  return { createMarket };
 };
 
 export default useMarketCreation;

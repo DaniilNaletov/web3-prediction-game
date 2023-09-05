@@ -1,5 +1,5 @@
 import React from "react";
-import MarketCreationForm from "../../modules/market/components/MarketCreationForm/MarketCreationForm";
+import MarketCreationForm from "../../../modules/market/components/MarketCreationForm/MarketCreationForm";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 const MarketCreationPage: React.FC<{

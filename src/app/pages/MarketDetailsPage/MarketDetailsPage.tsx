@@ -1,5 +1,5 @@
 import React from "react";
-import MarketDetails from "../../modules/market/components/MarketDetails/MarketDetails";
+import MarketDetails from "../../../modules/market/components/MarketDetails/MarketDetails";
 
 const MarketDetailsPage: React.FC<{ market: string; onBack: () => void }> = ({
   market,

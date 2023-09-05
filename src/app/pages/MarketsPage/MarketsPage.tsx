@@ -1,5 +1,5 @@
 import React from "react";
-import MarketList from "../../modules/market/components/MarketList/MarketList";
+import MarketList from "../../../modules/market/components/MarketList/MarketList";
 
 const MarketsPage: React.FC<{
   onMarketSelect: (market: string | null) => void;
