@@ -1,8 +1,8 @@
-const getCreationFormError = (formData: FormData) => {
-  const description = String(formData.get("description"));
-  const cutoffDate = String(formData.get("cutoffDate"));
-  const decisionDate = String(formData.get("decisionDate"));
-  const decisionProvider = String(formData.get("decisionProvider"));
+import { MarketCreationData } from "../interfaces/marketInterfaces";
+
+const validateCreationData = (creationData: MarketCreationData) => {
+  const { description, cutoffDate, decisionDate, decisionProvider } =
+    creationData;
 
   if (!description || !description.length) {
     return "Description can not be empty";
@@ -12,7 +12,7 @@ const getCreationFormError = (formData: FormData) => {
     return "Cutoff date can not be empty";
   }
 
-  if (new Date(cutoffDate).getTime() <= Date.now()) {
+  if (cutoffDate <= Date.now()) {
     return "Cutoff date should be a future";
   }
 
@@ -20,7 +20,7 @@ const getCreationFormError = (formData: FormData) => {
     return "Decision date can not be empty";
   }
 
-  if (new Date(decisionDate).getTime() <= new Date(cutoffDate).getTime()) {
+  if (decisionDate <= cutoffDate) {
     return "Decision date should be after cutoff date";
   }
 
@@ -31,4 +31,4 @@ const getCreationFormError = (formData: FormData) => {
   return null;
 };
 
-export default getCreationFormError;
+export default validateCreationData;

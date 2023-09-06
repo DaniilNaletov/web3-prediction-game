@@ -1,58 +1,56 @@
 import React, { useState } from "react";
 import { useAccount } from "wagmi";
-import useMarketCreation from "./useMarketCreation";
-import getCreationFormError from "../../model/validateCreationForm";
+import validateCreationData from "../../model/validateCreationData";
+import { MarketCreationData } from "../../interfaces/marketInterfaces";
+import createPredictionMarket from "./createPredictionMarket";
+import useWatchMarketCreatedEvent from "./useWatchMarketCreatedEvent";
 
 const MarketCreationForm: React.FC<{
   onMarketSelect: (market: string) => void;
 }> = ({ onMarketSelect }) => {
   const [error, setError] = useState("");
   const [existedMarket, setExistedMarket] = useState("");
-  const [createdMarket, setCreatedMarket] = useState(false);
+  const [createdMarket, setCreatedMarket] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
   const { isConnected } = useAccount();
 
-  const { createMarket } = useMarketCreation();
+  useWatchMarketCreatedEvent();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setError("");
     setExistedMarket("");
-    setCreatedMarket(false);
-
-    const formData = new FormData(e.currentTarget);
-
-    const description = String(formData.get("description"));
-    const cutoffDate = String(formData.get("cutoffDate"));
-    const decisionDate = String(formData.get("decisionDate"));
-    const decisionProvider = String(formData.get("decisionProvider"));
+    setCreatedMarket("");
 
     if (!isConnected) {
       setError("Please connect your wallet");
       return;
     }
 
-    const error = getCreationFormError(formData);
+    const formData = new FormData(e.currentTarget);
+    const creationData: MarketCreationData = {
+      description: String(formData.get("description")),
+      cutoffDate: Date.parse(String(formData.get("cutoffDate"))),
+      decisionDate: Date.parse(String(formData.get("decisionDate"))),
+      decisionProvider: String(formData.get("decisionProvider")),
+    };
+
+    const error = validateCreationData(creationData);
     if (error) {
       setError(error);
       return;
     }
 
     setIsCreating(true);
-    const result = await createMarket({
-      description,
-      cutoffDate: new Date(cutoffDate).getTime(),
-      decisionDate: new Date(decisionDate).getTime(),
-      decisionProvider,
-    });
+    const result = await createPredictionMarket(creationData);
     setIsCreating(false);
 
     if (result.type === "existed") {
-      setExistedMarket(result.market as string);
+      setExistedMarket(result.existedMarket as string);
     } else if (result.type === "success") {
-      setCreatedMarket(true);
+      setCreatedMarket(result.transactionHash as string);
     } else if (result.type === "error") {
       setError("Something went wrong... Try again");
     }

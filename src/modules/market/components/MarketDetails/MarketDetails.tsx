@@ -23,9 +23,17 @@ const MarketDetails: React.FC<{
           <p className="text-2xl">{marketInfo.description}</p>
         </div>
 
-        <p>Cutoff Date in: {hours} hours</p>
+        <p>
+          Address: <span className="text-sm text-gray-500">{market}</span>
+        </p>
 
-        <p>Active: {!marketInfo.state ? "Yes" : "No"}</p>
+        {dateDiff > 0 ? (
+          <p>Cutoff Date in: {hours} hours</p>
+        ) : (
+          <p>Cutoff Date has passed - the market is closed</p>
+        )}
+
+        <p>State: {!marketInfo.state ? "Yes" : "No"}</p>
 
         <div className="flex flex-row gap-3">
           <p>Votes up: {marketInfo.votesUp} 👍</p>
