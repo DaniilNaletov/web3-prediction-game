@@ -1,6 +1,6 @@
 import React from "react";
 import { Address } from "wagmi";
-import useMarketInfo from "./useMarketInfo";
+import useMarketInfo from "../../hooks/useMarketInfo";
 import getEmojiFromAddress from "../../../../common/getEmojiFromAddress";
 
 const MarketDetails: React.FC<{
@@ -13,7 +13,8 @@ const MarketDetails: React.FC<{
   }
 
   if (marketInfo) {
-    const dateDiff = new Date(marketInfo.cutoffDate).getTime() - Date.now();
+    const cutoffDate = new Date(marketInfo.cutoffDate);
+    const dateDiff = cutoffDate.getTime() - Date.now();
     const hours = Math.round(Math.abs(dateDiff) / 36e5);
 
     return (
@@ -30,7 +31,10 @@ const MarketDetails: React.FC<{
         {dateDiff > 0 ? (
           <p>Cutoff Date in: {hours} hours</p>
         ) : (
-          <p>Cutoff Date has passed - the market is closed</p>
+          <p>
+            Cutoff Date passed {cutoffDate.toLocaleString()} - the market is
+            closed
+          </p>
         )}
 
         <p>State: {!marketInfo.state ? "Yes" : "No"}</p>

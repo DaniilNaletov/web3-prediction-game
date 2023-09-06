@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getMarkets } from "../../../../api/endpoints";
+import { getMarkets } from "../../api/marketApi";
 import { Market } from "../../interfaces/marketInterfaces";
 import getEmojiFromAddress from "../../../../common/getEmojiFromAddress";
 

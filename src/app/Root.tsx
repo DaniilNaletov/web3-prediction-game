@@ -1,40 +1,11 @@
 import React from "react";
-import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { WagmiConfig, configureChains, createConfig } from "wagmi";
-import { polygonMumbai } from "wagmi/chains";
-import { publicProvider } from "wagmi/providers/public";
-import { alchemyProvider } from "wagmi/providers/alchemy";
-import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
-import App from "./App";
+import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
+import { WagmiConfig } from "wagmi";
+import { configWeb3 } from "./configWeb3";
+import App from "./App";
 
-const { chains, publicClient } = configureChains(
-  [polygonMumbai],
-  [
-    jsonRpcProvider({
-      rpc: (chain) =>
-        chain.id === 80001
-          ? {
-              http: `https://polygon-mumbai-bor.publicnode.com`,
-            }
-          : null,
-    }),
-    alchemyProvider({ apiKey: import.meta.env.ALCHEMY_ID || "" }),
-    publicProvider(),
-  ]
-);
-
-const { connectors } = getDefaultWallets({
-  appName: "Prediction Game",
-  projectId: import.meta.env.VITE_WALLETCONNECT_PROJECT_ID,
-  chains,
-});
-
-const wagmiConfig = createConfig({
-  autoConnect: true,
-  connectors,
-  publicClient,
-});
+const { chains, wagmiConfig } = configWeb3();
 
 const Root: React.FC = () => {
   return (

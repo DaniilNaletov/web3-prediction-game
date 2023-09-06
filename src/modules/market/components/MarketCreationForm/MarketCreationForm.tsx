@@ -3,7 +3,7 @@ import { useAccount } from "wagmi";
 import validateCreationData from "../../model/validateCreationData";
 import { MarketCreationData } from "../../interfaces/marketInterfaces";
 import createPredictionMarket from "./createPredictionMarket";
-import useWatchMarketCreatedEvent from "./useWatchMarketCreatedEvent";
+import useWatchMarketCreatedEvent from "../../hooks/useWatchMarketCreatedEvent";
 
 const MarketCreationForm: React.FC<{
   onMarketSelect: (market: string) => void;

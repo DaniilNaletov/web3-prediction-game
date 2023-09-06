@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { Address } from "viem";
 import { useContractReads } from "wagmi";
-import PredictionMarketAbi from "../../model/PredictionMarketAbi.json";
-import { MarketInfo } from "../../interfaces/marketInterfaces";
+import PredictionMarketAbi from "../model/PredictionMarketAbi.json";
+import { MarketInfo } from "../interfaces/marketInterfaces";
 
 const useMarketInfo = (market: Address) => {
   const { data, isLoading, isError } = useContractReads({
